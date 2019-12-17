@@ -1,5 +1,6 @@
 package com.example.timerapp
 
+import android.graphics.Color
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -13,22 +14,29 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    internal lateinit var startButton: Button
-    internal lateinit var restartButton: Button
-    internal lateinit var timerView: TextView
-    private var currentMinutes: Int = 0
-    private var currentSeconds: Int = 0
-    private var currentMilliS: Int = 0
-    private var timerStarted: Boolean = false
-    private var timer = Timer()
+    internal lateinit var   startButton: Button
+    internal lateinit var   restartButton: Button
+    internal lateinit var   timerView: TextView
+    private var     currentMinutes: Int = 0
+    private var     currentSeconds: Int = 0
+    private var     currentMilliS: Int = 0
+    private var     timerExists: Boolean = false
+    private var     timer = Timer()
+    private var     currState: currentState = currentState.notStarted
+
+    enum class currentState {
+        paused,
+        running,
+        notStarted
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        startButton = findViewById(R.id.startbutton)
-        restartButton = findViewById(R.id.restartbutton)
-        timerView = findViewById(R.id.textView)
+        startButton     = findViewById(R.id.startbutton)
+        restartButton   = findViewById(R.id.restartbutton)
+        timerView       = findViewById(R.id.textView)
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -36,15 +44,60 @@ class MainActivity : AppCompatActivity() {
         }
 
         startButton.setOnClickListener{ view ->
-            startTimer()
-            startButton.setBackgroundColor(0xFF9514)
+
+            //Timer has already started and it's currently paused
+            if (timerExists && currState == currentState.paused){
+                currState = currentState.running
+                startTimer()
+            }
+            //Timer has already started and it's currently running
+            else if (timerExists && currState == currentState.running){
+                currState = currentState.paused
+                this.timer.cancel()
+                timerExists = false
+            }
+            //Timer hasn't started
+            else if(!timerExists){
+                currState = currentState.running
+                startTimer()
+            }
+            classifyButton()
         }
+
         restartButton.setOnClickListener{ view ->
             restartTimer()
+            classifyButton()
         }
     }
 
+    private fun classifyButton() {
+        when (this.currState){
+            //Running -> Paused
+            currentState.paused -> {
+                startButton.setText("Start")
+                startButton.setBackgroundColor(Color.parseColor("#D9F0FF")) //Baby Blue
+            }
+
+            //Paused -> Running
+            currentState.running -> {
+                startButton.setText("Pause")
+                startButton.setBackgroundColor(Color.parseColor("#FF993F")) //Saffron Orange
+            }
+
+            //First click of start
+            //Restarted
+            currentState.notStarted -> {
+
+                //classifyButton()
+            }
+        }
+    }
+
+
+
     private fun restartTimer() {
+        currState = currentState.paused
+        timerExists = false
         this.timer.cancel()
         this.currentMinutes = 0
         this.currentSeconds = 0
@@ -59,11 +112,14 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
+
+
     }
 
     private fun startTimer() {
-        if(!timerStarted) {
-            timerStarted = true
+        if(!timerExists) {
+            timerExists = true
+            this.timer = Timer()
             println("timer now started")
             this.timer.schedule(object : TimerTask() {
 
