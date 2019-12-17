@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="timer_text_size">100sp</dimen>
+    <dimen name="start_text_size">50sp</dimen>
+</resources>
